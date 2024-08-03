@@ -3,7 +3,7 @@ import { FormEvent, useEffect, useRef, useState, useTransition } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Loader2Icon } from "lucide-react";
-// import ChatMessage from "./ChatMessage";
+import ChatMessage from "./ChatMessage";
 import { useCollection } from "react-firebase-hooks/firestore";
 import { useUser } from "@clerk/nextjs";
 import { collection, orderBy, query } from "firebase/firestore";
@@ -21,7 +21,8 @@ function Chat({ id }: { id: string }) {
 
   const [input, setInput] = useState("");
   const [isPending, startTransition] = useTransition();
-  const [messages, setMessages] = useState<Messages[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const bottomOfChatRef = useRef<HTMLDivElement>(null);
 
   const [snapshot, loading, error] = useCollection(
     user &&
@@ -30,6 +31,12 @@ function Chat({ id }: { id: string }) {
         orderBy("createdAt", "asc")
       )
   );
+
+  useEffect(() => {
+    bottomOfChatRef.current?.scrollIntoView({
+        behavior: "smooth",
+    })
+  }, [messages]);
 
   useEffect(() => {
     if (!snapshot) return;
@@ -53,9 +60,8 @@ function Chat({ id }: { id: string }) {
         message,
         createdAt: createdAt.toDate(),
       };
-
     });
-    
+
     setMessages(newMessages);
 
     // Ignore messages dependancy warning here... we dont want an infinite loop
@@ -104,14 +110,33 @@ function Chat({ id }: { id: string }) {
   return (
     <div className="flex flex-col h-full overflow-scroll">
       {/* Chat Content */}
-      <div className="flex-1 w-full">{/* Chat messages... */}
-        {
-            messages.map((message) => (
-                <div key={message.id}>
-                    <p>{message.message}</p>
-                </div>
-            ))
-        }
+      <div className="flex-1 w-full">
+        {/* Chat messages... */}
+
+        {loading ? (
+          <div className="flex items-center justify-center">
+            <Loader2Icon className="animate-spin h-20 w-20 text-indigo-600 mt-20" />
+          </div>
+        ) : (
+          <div className="p-5">
+            {messages.length === 0 && (
+              <ChatMessage
+                key={"placeholder"}
+                message={{
+                  role: "ai",
+                  message: "Ask me anything about the document!",
+                  createdAt: new Date(),
+                }}
+              />
+            )}
+
+            {messages.map((message, index) => (
+              <ChatMessage key={index} message={message} />
+            ))}
+
+            <div ref={bottomOfChatRef} />
+          </div>
+        )}
       </div>
       <form
         onSubmit={handleSubmit}
