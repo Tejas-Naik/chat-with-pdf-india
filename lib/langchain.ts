@@ -5,7 +5,7 @@ import { OpenAIEmbeddings } from "@langchain/openai";
 import { createStuffDocumentsChain } from "langchain/chains/combine_documents";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { createRetrievalChain } from "langchain/chains/retrieval";
-import { CreateHistoryAwareRetriever } from "langchain/chains/history_aware_retriever";
+import { createHistoryAwareRetriever } from "langchain/chains/history_aware_retriever";
 import { HumanMessage, AIMessage } from "@langchain/core/messages";
 import pineconeClient from "./pinecone";
 import { PineconeStore } from "@langchain/pinecone";
@@ -24,6 +24,39 @@ const model = new ChatOpenAI({
 });
 
 export const indexName = "papafam";
+
+async function fetchMessagesFromDB(docId: string) {
+  const { userId } = await auth();
+  if (!userId) {
+    throw new Error("User not found");
+  }
+
+  console.log("---Fetching chat history from the firestore database...");
+  // Get the last 6 messages from the chat history
+
+  const chats = await adminDb
+    .collection("users")
+    .doc(userId)
+    .collection("files")
+    .doc(docId)
+    .collection("chat")
+    .orderBy("createdAt", "desc")
+    // .limit(LIMIT
+    .get();
+
+  const chatHistory = chats.docs.map((doc) =>
+    doc.data().role === "human"
+      ? new HumanMessage(doc.data().message)
+      : new AIMessage(doc.data().message)
+  );
+
+  console.log(`
+      --- fetched last ${chatHistory.length} messages successfully ---
+    `);
+  console.log(chatHistory.map((msg) => msg.content.toString()));
+
+  return chatHistory;
+}
 
 async function namespaceExists(
   index: Index<RecordMetadata>,
@@ -122,3 +155,80 @@ export async function generateEmbeddingsInPineconeVectorStore(docId: string) {
     return pineconeVectorStore;
   }
 }
+
+const generateLangchainCompletion = async (docId: string, question: string) => {
+  let pineconeVectorStore;
+
+  pineconeVectorStore = await generateEmbeddingsInPineconeVectorStore(docId);
+  if (!pineconeVectorStore) {
+    throw new Error("Pinecone vector store not found");
+  }
+
+  // ---
+  // create a retriever to search through the vector store
+  console.log("--- Creating a retriever...---");
+  const retriever = pineconeVectorStore.asRetriever();
+
+  // Fetch the chat history from the database
+  const chatHistory = await fetchMessagesFromDB(docId);
+
+  // Define a prompt template for generating search queries based on conversation history
+  console.log("--- Defining a prompt template... ---");
+  const historyAwarePrompt = ChatPromptTemplate.fromMessages([
+    ...chatHistory, // Insert the actual chat history here
+
+    ["user", "{input}"],
+    [
+      "user",
+      "Given the above conversation, generate a seaarch query to look up in order to get information relevant to the conversation",
+    ],
+  ]);
+
+  // Create a history-aware retriever chain that uses the model, retriever and prompt
+  console.log("--- Creating a history-aware retriever cahin... ---");
+  const historyAwareRetrieverChain = await createHistoryAwareRetriever({
+    llm: model,
+    retriever,
+    rephrasePrompt: historyAwarePrompt,
+  })
+
+  // Define a prompt template for answering questions based on retiever context
+  console.log("--- Defining a prompt template for answering questions... ---");
+  const historyAwareRetrievalPrompt = ChatPromptTemplate.fromMessages([
+    [
+      "system",
+      "Answer the user's questions based on the below context:\n\n{context}",
+    ],
+
+    ...chatHistory, // Insert the actual chat history here
+
+    ["user", "{input}"],
+  ]);
+
+  // Create a chain to combine the retriever document into a coherent response
+  console.log("--- Creating a document combining chain... ---");
+  const historyAwareCombineDocChain = await createStuffDocumentsChain({
+    llm: model,
+    prompt: historyAwareRetrievalPrompt,
+  });
+
+  // Create the main retrieval chain that combines the history=aware retriever and document combining chains
+  console.log("--- Creating the main retrieval chain... ---");
+  const conversationalRetrievalChain = await createRetrievalChain({
+    retriever: historyAwareRetrieverChain,
+    combineDocsChain: historyAwareCombineDocChain,
+  });
+
+  console.log("--- Running the chain with a sample conversation... ---");
+  const reply = await conversationalRetrievalChain.invoke({
+    chat_history: chatHistory,
+    input: question,
+  });
+
+  // Print the result to the console
+  console.log(reply.answer);
+  return reply.answer;
+};
+
+// Export the model and run the function
+export {model, generateLangchainCompletion}
