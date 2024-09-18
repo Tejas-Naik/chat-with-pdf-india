@@ -20,7 +20,7 @@ import { auth } from "@clerk/nextjs/server";
 // Initialize the OpenAI model with API ket=y and model name
 const model = new ChatOpenAI({
   apiKey: process.env.OPENAI_API_KEY,
-  modelName: "gpt-3.5-turbo",
+  modelName: "gpt-4-turbo",
 });
 
 export const indexName = "papafam";
