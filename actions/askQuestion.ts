@@ -87,6 +87,11 @@ export async function askQuestion(id: string, question: string) {
     return { success: false, message: "Failed to generate response" };
   }
 
+  if (!reply) {
+    console.error("generateLangchainCompletion returned undefined");
+    return { success: false, message: "Failed to generate response" };
+  }
+
   const aiMessage: Message = {
     role: "ai",
     message: reply,
