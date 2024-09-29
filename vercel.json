@@ -1,7 +1,11 @@
 {
   "functions": {
-    "lib/langchain.ts": {
-      "memory": 3008,
+    "pages/api/**/*.{js,ts}": {
+      "memory": 1024,
+      "maxDuration": 60
+    },
+    "lib/**/*.{js,ts}": {
+      "memory": 1024,
       "maxDuration": 60
     }
   }
