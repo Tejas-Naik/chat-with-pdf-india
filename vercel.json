@@ -1,8 +1,8 @@
 {
   "functions": {
-    "src/api/**/*.js": {
+    "lib/langchain.ts": {
       "memory": 3008,
-      "maxDuration": 30
+      "maxDuration": 60
     }
   }
 }
