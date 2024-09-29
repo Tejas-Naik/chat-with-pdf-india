@@ -49,7 +49,6 @@ const PRO_LIMIT = 100
 
 //     return {success: true, message: null}
 // }
-export const maxDuration = 60;
 export async function askQuestion(id: string, question: string) {
   auth().protect();
 
