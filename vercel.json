@@ -1,6 +1,6 @@
 {
   "functions": {
-    "lib/langchain.ts": {
+    "lib/pinecone.ts": {
       "memory": 1024,
       "maxDuration": 60
     }
