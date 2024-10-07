@@ -232,4 +232,4 @@ const generateLangchainCompletion = async (docId: string, question: string) => {
 
 // Export the model and run the function
 export {model, generateLangchainCompletion}
-export const maxDuration = 60;
+export const maxDuration = 300;

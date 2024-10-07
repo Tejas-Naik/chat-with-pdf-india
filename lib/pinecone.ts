@@ -9,4 +9,4 @@ const pineconeClient = new Pinecone({
 });
 
 export default pineconeClient;
-export const maxDuration = 60;
+export const maxDuration = 300;
