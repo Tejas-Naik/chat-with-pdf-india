@@ -1,17 +1,31 @@
 "use client";
 import { Button } from "@/components/ui/button";
+import useSubscription from "@/hooks/useSubscription";
 import { useUser } from "@clerk/nextjs";
 import { CheckIcon, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import React from "react";
+import React, { useTransition } from "react";
 
-type Props = {};
+export type UserDetails = {
+    email: string;
+    name: string;
+};
 
-function PricingPage({}: Props) {
-    const {user} = useUser();
-    const router = useRouter();
-    // Pull in users subscription
-    
+function PricingPage() {
+  const { user } = useUser();
+  const router = useRouter();
+  const { hasActiveMembership, loading } = useSubscription();
+  const [isPending, setIsPending] = useTransition();
+
+const handleUpgrade = () => {
+    if (!user) return;
+
+    const userDetails:UserDetails = {
+        email: user.primaryEmailAddress?.toString()!,
+        name: user.fullName!,
+    }
+}
+
   return (
     <div>
       <div className="py-24 sm:py-32">
@@ -80,7 +94,7 @@ function PricingPage({}: Props) {
             </p>
             <p className="mt-6 flex items-baseline gap-x-1">
               <span className="text-4xl font-bold tracking-tight text-gray-900">
-                $5.99
+                ₹199
               </span>
               <span className="text-sm font-semibold leading-6 text-gray-600">
                 / month
@@ -93,8 +107,14 @@ function PricingPage({}: Props) {
                 focus-visible: outline focus-visible: outline-2
                 focus-visible:outline-offset-2
                 focus-visible: outline-indigo-600"
+              disabled={loading || isPending}
+              onClick={handleUpgrade}
             >
-              Upgrade to Pro
+              {isPending || loading
+                ? "Loading..."
+                : hasActiveMembership
+                ? "Manage Plan"
+                : "Upgrade to Pro"}
             </Button>
             <ul
               role="list"
