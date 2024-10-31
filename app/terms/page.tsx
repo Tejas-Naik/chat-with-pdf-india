@@ -28,14 +28,14 @@ import React from "react";
               3(1) of the Information Technology (Intermediaries Guidelines) Rules,
               2011, which require publishing the rules and regulations, privacy
               policy, and Terms of Use for access or usage of the domain name
-              [tezcode.tech] ("Website"), including the related mobile site and
-              mobile application (hereinafter referred to as "Platform").
+              [tezcode.tech] (&quot;Website&quot;), including the related mobile site and
+              mobile application (hereinafter referred to as &quot;Platform&quot;).
             </p>
 
             <p className="mt-4 leading-8">
               The Platform is owned by [tezcode.tech], a company incorporated
               under the Companies Act, 1956, with its registered office at [Examba, Chikodi, Karnataka]. For the purposes of these Terms of Use, wherever the context
-              requires, "you", "your" or "user" shall mean any natural or legal
+              requires, &quot;you&quot;, &quot;your&quot; or &quot;user&quot; shall mean any natural or legal
               person who has agreed to become a user/buyer on the Platform.
             </p>
 
