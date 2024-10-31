@@ -3,7 +3,7 @@ import React from "react";
 
 function RefundPolicyPage() {
   return (
-    <div className="py-24 sm:py-32">
+    <div className="py-24 overflow-y-scroll sm:py-32">
       <div className="max-w-4xl mx-auto text-center">
         <h2 className="text-base font-semibold leading-7 text-indigo-600">Refund Policy</h2>
         <p className="mt-2 text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">

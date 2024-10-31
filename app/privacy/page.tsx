@@ -3,7 +3,7 @@ import React from "react";
 
 function PrivacyPolicy() {
   return (
-    <div className="max-w-4xl mx-auto py-16 px-6 sm:px-8">
+    <div className="max-w-4xl overflow-y-scroll mx-auto py-16 px-6 sm:px-8">
       <h1 className="text-3xl font-bold text-gray-900 text-center mb-8">
         Privacy Policy
       </h1>
